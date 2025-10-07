@@ -188,16 +188,29 @@
     if (s === "review-article" || s === "review article") return "review";
     return s;
   }
-  function normalizePubs(rows){
-    rows.forEach(p => {
-      p.publication_year = toInt(p.publication_year || p.year);
-      p.type = normalizeType(p.type || p.display_type);
-      p.author_openalex_id = normalizeID(p.author_openalex_id || p.OpenAlexID || p.author_id);
-      // tokenize topic/concept haystacks for reuse
-      p._topic_haystack = buildTopicHaystack(p);
-      p._concept_haystack = buildConceptHaystack(p);
-    });
-  }
+   function normalizePubs(rows){
+     rows.forEach(p => {
+       p.publication_year = toInt(p.publication_year || p.year);
+       p.type = normalizeType(p.type || p.display_type);
+   
+       // Prefer the full authorship list if present
+       const rawList = String(p["authorships__author__id"] || "").trim();
+       const listIDs = rawList
+         ? rawList.split("|").map(normalizeID).filter(Boolean)
+         : [];
+   
+       // Fallbacks to support per-author files or older exports
+       const single = normalizeID(p.author_openalex_id || p.OpenAlexID || p.author_id);
+   
+       // Cache a canonical array of author IDs on the row
+       p._all_author_ids = listIDs.length ? listIDs : (single ? [single] : []);
+   
+       // Pre-tokenize topics & concepts for reuse
+       p._topic_haystack = buildTopicHaystack(p);
+       p._concept_haystack = buildConceptHaystack(p);
+     });
+   }
+
   function buildTopicHaystack(p){
     const t1 = (p.primary_topic__display_name || "").trim();
     const t2 = (p.topics__display_name || "").split("|").map(s=>s.trim()).filter(Boolean);
@@ -214,15 +227,18 @@
     if(!fullTimeOnly) return roster.length;
     return roster.filter(r => /^full\s*-?\s*time/i.test(String(r.Appointment||""))).length || roster.length;
   }
-  function filterToRoster(pubs, roster, yMin, yMax, types){
-    const allowed = new Set(roster.map(r=>normalizeID(r.OpenAlexID)));
-    return pubs.filter(p => {
-      if (p.publication_year < yMin || p.publication_year > yMax) return false;
-      if (types && !types.has(String(p.type||"other").toLowerCase())) return false;
-      const aid = normalizeID(p.author_openalex_id);
-      return allowed.has(aid);
-    });
-  }
+   function filterToRoster(pubs, roster, yMin, yMax, types){
+     const allowed = new Set(roster.map(r => normalizeID(r.OpenAlexID)));
+     return pubs.filter(p => {
+       if (p.publication_year < yMin || p.publication_year > yMax) return false;
+       if (types && !types.has(String(p.type||"other").toLowerCase())) return false;
+   
+       const ids = Array.isArray(p._all_author_ids) ? p._all_author_ids : [];
+       // keep the pub if ANY of its authors are in the roster
+       return ids.some(id => allowed.has(id));
+     });
+   }
+
 
   // ---------------- cross‑school pubs & pairs ----------------
   function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
@@ -332,20 +348,27 @@
   // ---------------- PCA ----------------
   function renderPCA(A, B, yMin, yMax, source){
     // Build author -> set of terms (topics/concepts) for window
-    function authorTerms(pubs, roster){
-      const allowed = new Set(roster.map(r=>normalizeID(r.OpenAlexID)));
-      const byAuthor = new Map();
-      pubs.forEach(p => {
-        if (p.publication_year < yMin || p.publication_year > yMax) return;
-        const id = normalizeID(p.author_openalex_id);
-        if (!allowed.has(id)) return;
-        const terms = source==="topics" ? p._topic_haystack : p._concept_haystack;
-        const set = byAuthor.get(id) || new Set();
-        terms.forEach(t => set.add(String(t||"").toLowerCase()));
-        byAuthor.set(id, set);
-      });
-      return byAuthor;
-    }
+   function authorTerms(pubs, roster){
+     const allowed = new Set(roster.map(r=>normalizeID(r.OpenAlexID)));
+     const byAuthor = new Map();
+     pubs.forEach(p => {
+       if (p.publication_year < yMin || p.publication_year > yMax) return;
+   
+       const ids = Array.isArray(p._all_author_ids) && p._all_author_ids.length
+         ? p._all_author_ids
+         : [normalizeID(p.author_openalex_id)].filter(Boolean);
+   
+       const terms = source==="topics" ? p._topic_haystack : p._concept_haystack;
+   
+       ids.forEach(id => {
+         if (!allowed.has(id)) return;
+         let set = byAuthor.get(id);
+         if (!set) { set = new Set(); byAuthor.set(id, set); }
+         terms.forEach(t => set.add(String(t||"").toLowerCase()));
+       });
+     });
+     return byAuthor;
+   }
     const aA = authorTerms(A.perAuthor?.length ? A.perAuthor : A.dedup, A.roster);
     const aB = authorTerms(B.perAuthor?.length ? B.perAuthor : B.dedup, B.roster);
 
