@@ -193,33 +193,38 @@
        p.publication_year = toInt(p.publication_year || p.year);
        p.type = normalizeType(p.type || p.display_type);
    
-       // Prefer the full authorship list if present
+       // All OpenAlex author IDs on this paper (preferred)
        const rawList = String(p["authorships__author__id"] || "").trim();
        const listIDs = rawList
          ? rawList.split("|").map(normalizeID).filter(Boolean)
          : [];
    
-       // Fallbacks to support per-author files or older exports
+       // Fallback (per-author exports)
        const single = normalizeID(p.author_openalex_id || p.OpenAlexID || p.author_id);
    
-       // Cache a canonical array of author IDs on the row
+       // Canonical: array of author IDs for this row
        p._all_author_ids = listIDs.length ? listIDs : (single ? [single] : []);
    
-       // Pre-tokenize topics & concepts for reuse
-       p._topic_haystack = buildTopicHaystack(p);
+       // Pre-tokenize terms
+       p._topic_haystack   = buildTopicHaystack(p);
        p._concept_haystack = buildConceptHaystack(p);
      });
    }
 
-  function buildTopicHaystack(p){
-    const t1 = (p.primary_topic__display_name || "").trim();
-    const t2 = (p.topics__display_name || "").split("|").map(s=>s.trim()).filter(Boolean);
-    return unique([t1, ...t2]).filter(Boolean);
-  }
-  function buildConceptHaystack(p){
-    const c = (p.concepts__display_name || "").split("|").map(s=>s.trim()).filter(Boolean);
-    return unique(c);
-  }
+
+   function buildTopicHaystack(p){
+     // Single curated topic from your export
+     const t1 = (p["primary_topic__display_name"] || "").trim();
+     return unique([t1]).filter(Boolean);
+   }
+   
+   function buildConceptHaystack(p){
+     // Semicolon-separated list
+     const raw = (p["concepts_list"] || "").trim();
+     if (!raw) return [];
+     return unique(raw.split(";").map(s => s.trim()).filter(Boolean));
+   }
+
   function unique(arr){ return Array.from(new Set(arr.filter(Boolean))); }
 
   // ---------------- filtering & denominators ----------------
@@ -232,13 +237,11 @@
      return pubs.filter(p => {
        if (p.publication_year < yMin || p.publication_year > yMax) return false;
        if (types && !types.has(String(p.type||"other").toLowerCase())) return false;
-   
        const ids = Array.isArray(p._all_author_ids) ? p._all_author_ids : [];
-       // keep the pub if ANY of its authors are in the roster
+       // keep if ANY paper author is in this school’s roster
        return ids.some(id => allowed.has(id));
      });
    }
-
 
   // ---------------- cross‑school pubs & pairs ----------------
   function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
@@ -356,19 +359,20 @@
    
        const ids = Array.isArray(p._all_author_ids) && p._all_author_ids.length
          ? p._all_author_ids
-         : [normalizeID(p.author_openalex_id)].filter(Boolean);
-   
-       const terms = source==="topics" ? p._topic_haystack : p._concept_haystack;
-   
-       ids.forEach(id => {
-         if (!allowed.has(id)) return;
-         let set = byAuthor.get(id);
-         if (!set) { set = new Set(); byAuthor.set(id, set); }
-         terms.forEach(t => set.add(String(t||"").toLowerCase()));
-       });
-     });
-     return byAuthor;
-   }
+            : [normalizeID(p.author_openalex_id)].filter(Boolean);
+      
+          const terms = source==="topics" ? p._topic_haystack : p._concept_haystack;
+      
+          ids.forEach(id => {
+            if (!allowed.has(id)) return;
+            let set = byAuthor.get(id);
+            if (!set) { set = new Set(); byAuthor.set(id, set); }
+            terms.forEach(t => set.add(String(t||"").toLowerCase()));
+          });
+        });
+        return byAuthor;
+      }
+
     const aA = authorTerms(A.perAuthor?.length ? A.perAuthor : A.dedup, A.roster);
     const aB = authorTerms(B.perAuthor?.length ? B.perAuthor : B.dedup, B.roster);
 
