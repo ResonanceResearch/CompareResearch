@@ -1,0 +1,24 @@
+{
+  "schools": {
+    "UCVM": {
+      "label": "UCVM",
+      "color": "#2563eb",
+      "roster": "data/UCVM/roster_with_metrics.csv",
+      "perAuthor": "data/UCVM/openalex_all_authors_last5y_key_fields_dedup_per_author.csv",
+      "dedup": "data/UCVM/openalex_all_authors_last5y_key_fields_dedup.csv"
+    },
+    "OVC": {
+      "label": "OVC",
+      "color": "#059669",
+      "roster": "data/OVC/roster_with_metrics.csv",
+      "perAuthor": "data/OVC/openalex_all_authors_last5y_key_fields_dedup_per_author.csv",
+      "dedup": "data/OVC/openalex_all_authors_last5y_key_fields_dedup.csv"
+    }
+  },
+  "defaults": {
+    "A": "UCVM",
+    "B": "OVC",
+    "yearMin": 2021,
+    "yearMax": 2025
+  }
+}
