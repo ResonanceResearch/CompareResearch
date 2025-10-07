@@ -124,7 +124,7 @@
       const source = useTopics ? "topics" : "concepts";
       const dfA = termDocFreq(fA, source);
       const dfB = termDocFreq(fB, source);
-      renderOverlapAndEnrichment(dfA, dfB, denomA if perCapita else 1, denomB if perCapita else 1, A.meta, B.meta);
+      renderOverlapAndEnrichment(dfA, dfB, perCapita ? denomA : 1, perCapita ? denomB : 1, A.meta, B.meta);
 
       // PCA — author by topic sets, color by school
       renderPCA(A, B, yMin, yMax, source);
