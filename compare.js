@@ -125,7 +125,7 @@
 
       // Wire export buttons (PNG, SVG, HTML) for all charts
       try { wireCompareExports(); } catch(_) {}
-(fA, fB, A.roster, B.roster);
+
       document.getElementById("xschoolPubs").textContent = crossPubs.length;
       document.getElementById("xschoolPairs").textContent = crossPairsSummary(crossPubs, A.roster, B.roster);
 
@@ -287,8 +287,11 @@
   function crossPairsSummary(crossList, rosterA, rosterB){
     const nameOf = new Map([...rosterA, ...rosterB].map(r => [normalizeID(r.OpenAlexID), r.Name||r.OpenAlexID]));
     const pairCount = new Map(); // key "AID|BID" with sorted
-    crossList.forEach(v => {
-      v.aIDs.forEach(aid => v.bIDs.forEach(bid => {
+       crossList.forEach(v => {
+          const aList = Array.isArray(v._aIDs) ? v._aIDs : (Array.isArray(v.aIDs) ? v.aIDs : []);
+          const bList = Array.isArray(v._bIDs) ? v._bIDs : (Array.isArray(v.bIDs) ? v.bIDs : []);
+          aList.forEach(aid => bList.forEach(bid => {
+      
         const k = aid < bid ? aid+"|"+bid : bid+"|"+aid;
         pairCount.set(k, (pairCount.get(k)||0)+1);
       }));
