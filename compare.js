@@ -747,7 +747,7 @@ function showXSchoolPairPublications(aid, bid, worksList){
   // If a collapsible <details> exists, open it so the user sees the list
   const det = document.getElementById('pairs-collapse') || document.getElementById('xschool-pairs-collapse');
   if (det && det.tagName.toLowerCase() === 'details') det.open = true;
-}
+
   // Render
   if (!works.length){
     detail.innerHTML = `<div class="muted">No joint publications found for this pair in the current window.</div>`;
