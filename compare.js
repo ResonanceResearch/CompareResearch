@@ -279,10 +279,14 @@
     addList(pubsA); addList(pubsB);
     return Array.from(m.values())
      .filter(v => v.a && v.b)
-     .map(v => ({
-       _aIDs: Array.from(v.aIDs),
-       _bIDs: Array.from(v.bIDs)
-     }));
+     .map(v => {
+       // keep a representative full publication object used elsewhere in the dashboard
+       const p = v.sample || (Array.isArray(v.works) && v.works[0]) || {};
+       // and attach the cross-school author ID arrays the network/pairs need
+       p._aIDs = Array.from(v.aIDs || []);
+       p._bIDs = Array.from(v.bIDs || []);
+       return p;
+     });
   }
   function crossPairsSummary(crossList, rosterA, rosterB){
     const nameOf = new Map([...rosterA, ...rosterB].map(r => [normalizeID(r.OpenAlexID), r.Name||r.OpenAlexID]));
