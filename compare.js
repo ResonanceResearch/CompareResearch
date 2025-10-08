@@ -534,17 +534,30 @@ const debounce = window.debounce || function(fn, wait){
 
 // ====================== Cross‑school network & pairs ======================
 function getNetworkContainerId(){
-  // Prefer dedicated compare id; else reuse single‑school id if present
+  // If a dedicated target already exists, use it.
   if (document.getElementById('xschool-network')) return 'xschool-network';
   if (document.getElementById('coauthor-network')) return 'coauthor-network';
-  // As a last resort, create a div under a known wrapper if any
-  const wrapper = document.getElementById('network-wrapper') || document.body;
+
+  // Prefer a known panel slot *inside* the dashboard:
+  // (try these in order; keep any that match your markup)
+  const target =
+    document.querySelector('#panel-network .panel-body') ||
+    document.querySelector('#panel-network') ||
+    document.querySelector('#network-panel') ||
+    document.querySelector('#network-wrapper') ||
+    document.querySelector('#charts .grid-2x2') ||
+    document.querySelector('#charts-grid') ||
+    document.querySelector('.grid-2x2');
+
+  // Create the container in the chosen panel/grid
+  const host = target || document.body;               // fallback is body (last resort)
   const el = document.createElement('div');
   el.id = 'xschool-network';
-  el.className = 'chart network-chart';
-  wrapper.appendChild(el);
+  el.className = 'chart network-chart';               // keep same classes as your other charts/cards
+  host.appendChild(el);
   return 'xschool-network';
 }
+
 
 function buildXSchoolGraph(crossPubs, rosterA, rosterB){
   // roster arrays -> quick lookups
