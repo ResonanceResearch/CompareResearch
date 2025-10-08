@@ -277,7 +277,12 @@
       });
     }
     addList(pubsA); addList(pubsB);
-    return Array.from(m.values()).filter(v => v.a && v.b);
+    return Array.from(m.values())
+     .filter(v => v.a && v.b)
+     .map(v => ({
+       _aIDs: Array.from(v.aIDs),
+       _bIDs: Array.from(v.bIDs)
+     }));
   }
   function crossPairsSummary(crossList, rosterA, rosterB){
     const nameOf = new Map([...rosterA, ...rosterB].map(r => [normalizeID(r.OpenAlexID), r.Name||r.OpenAlexID]));
