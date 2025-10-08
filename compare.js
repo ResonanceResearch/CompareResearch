@@ -505,6 +505,25 @@
 
 })();
 
+
+// --- utils (add these) ---
+const normalizeID = window.normalizeID || function(id){
+  if (id == null) return '';
+  const s = String(id).trim();
+  if (!s) return '';
+  // Strip OpenAlex URL prefix if present, keep canonical author IDs like "A123456789"
+  return s.replace(/^https?:\/\/(?:www\.)?openalex\.org\//i, '');
+};
+
+// (only if you don’t already have a debounce in this file)
+const debounce = window.debounce || function(fn, wait){
+  let t;
+  return function(...args){
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+};
+
 // ====================== Cross‑school network & pairs ======================
 function getNetworkContainerId(){
   // Prefer dedicated compare id; else reuse single‑school id if present
