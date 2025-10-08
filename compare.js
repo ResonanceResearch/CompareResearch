@@ -640,8 +640,36 @@ function buildXSchoolGraph(crossPubs, rosterA, rosterB){
   return { pairMap, edges, nodeA: tA, nodeB: tB, positions: pos };
 }
 
+function ensureNetworkPlacement(){
+  const net = document.getElementById('xschool-network');
+  if (!net) return;
+
+  // Prefer a dedicated panel, then your 2×2 grid, else place before a known chart
+  const preferred =
+    document.querySelector('#panel-network .panel-body') ||
+    document.querySelector('#panel-network') ||
+    document.querySelector('#charts .grid-2x2') ||
+    document.querySelector('#charts-grid') ||
+    document.querySelector('.grid-2x2');
+
+  if (preferred && !preferred.contains(net)) {
+    preferred.appendChild(net);
+    return;
+  }
+
+  // Fallback: put the network just before an existing chart in the grid
+  const anchor = document.getElementById('enrichment') ||
+                 document.getElementById('pubByYear') ||
+                 document.getElementById('pca');
+  if (anchor && anchor.parentElement && !anchor.parentElement.contains(net)) {
+    anchor.parentElement.insertBefore(net, anchor);
+  }
+}
+
+
 function renderXSchoolNetwork(crossPubs, A, B){
   const divId = getNetworkContainerId();
+  ensureNetworkPlacement(); 
   // share colors to helper
   window.__compareColors = { A: A.meta.color || '#2563eb', B: B.meta.color || '#059669' };
 
