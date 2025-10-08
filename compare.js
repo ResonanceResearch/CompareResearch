@@ -113,7 +113,7 @@
       const fB = filterToRoster(B.dedup, B.roster, yMin, yMax, types);
 
       // KPI: cross-school coauth pubs (any pub with at least one author from A and one from B)
-      const crossPubs = crossSchoolPubs
+      const crossPubs = crossSchoolPubs(fA, fB, A.roster, B.roster);
       // Cross‑school network & expandable pairs table
       try {
         renderXSchoolNetwork(crossPubs, A, B);
@@ -748,25 +748,7 @@ function showXSchoolPairPublications(aid, bid, worksList){
   const det = document.getElementById('pairs-collapse') || document.getElementById('xschool-pairs-collapse');
   if (det && det.tagName.toLowerCase() === 'details') det.open = true;
 }
-  // Render
-  if (!works.length){
-    detail.innerHTML = `<div class="muted">No joint publications found for this pair in the current window.</div>`;
-    return;
-  }
-  // Sort by newest then citations
-  works = works.slice().sort((a,b) => (b.publication_year - a.publication_year) || (b.cited_by_count - a.cited_by_count));
-  const items = works.map(p => {
-    const year = Number(p.publication_year) || '';
-    const title = esc(p.display_name || '');
-    const type = esc(p.type || '');
-    const doi = (p.doi && /^https?:\/\//i.test(p.doi)) ? `<a href="${p.doi}" target="_blank" rel="noopener">DOI</a>` : '';
-    return `<li><strong>${year}</strong> — <em>${title}</em> <span class="muted">(${type})</span> ${doi}</li>`;
-  }).join("");
-  detail.innerHTML = `<ul class="pub-list">${items}</ul>`;
-  // If a collapsible <details> exists, open it so the user sees the list
-  const det = document.getElementById('pairs-collapse') || document.getElementById('xschool-pairs-collapse');
-  if (det && det.tagName.toLowerCase() === 'details') det.open = true;
-}
+ 
 
 // ====================== PCA Search / Highlight ======================
 function ensurePcaSearchUI(){
