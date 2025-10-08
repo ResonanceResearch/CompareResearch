@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two‑School Research Comparison</title>
+  <link rel="stylesheet" href="compare.css">
+  <link rel="icon" href="logo.png">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js" defer></script>
+  <script src="compare.js" defer></script>
+  <style>
+    /* Minor page‑local additions */
+    .charts-grid { display:grid; grid-template-columns: 1fr; gap: 16px; }
+    .chart-card .panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .enrichment { display:grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; }
+    .enrichment h4 { margin: 0 0 6px; font-size: 1rem; }
+    header { display:flex; align-items:center; justify-content:space-between; margin: 10px 0 16px; }
+    .header-left { display:flex; align-items:center; gap:12px; }
+    .logo { height: 56px; width:auto; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div id="loading-banner">Loading…</div>
+
+  <header>
+    <div class="header-left">
+      <img src="logo.png" alt="Logo" class="logo">
+      <h1>Two‑School Research Comparison (last 5y)</h1>
+    </div>
+    <div class="header-right">
+      <a href="#" id="swap-btn" class="link-btn" title="Swap A/B">↔ Swap A↔B</a>
+    </div>
+  </header>
+
+  <section id="controls" class="card">
+    <div class="school-picker">
+      <div class="school">
+        <label>School A</label>
+        <select id="schoolA"></select>
+      </div>
+      <div class="school">
+        <label>School B</label>
+        <select id="schoolB"></select>
+      </div>
+      <div class="toggle-row">
+        <label><input type="checkbox" id="perCapita" /> Per‑capita</label>
+        <label><input type="checkbox" id="fullTimeOnly" checked /> Denominator = full‑time only</label>
+        <label><input type="checkbox" id="useTopics" checked /> Use OpenAlex Topics (else Concepts)</label>
+        <label><input type="checkbox" id="normalizeTypes" checked /> Restrict to article/review/book/book‑chapter</label>
+        <input type="number" id="yearMin" placeholder="Min year" style="width:110px" />
+        <span>–</span>
+        <input type="number" id="yearMax" placeholder="Max year" style="width:110px" />
+        <button id="reset" class="reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="card"><div><span class="legend-dot" id="dotA"></span><strong id="nameA">School A</strong></div>
+        <div class="muted">Headcount (denominator)</div>
+        <div id="denomA">—</div></div>
+      <div class="card"><div><span class="legend-dot" id="dotB"></span><strong id="nameB">School B</strong></div>
+        <div class="muted">Headcount (denominator)</div>
+        <div id="denomB">—</div></div>
+      <div class="card"><div><strong>Cross‑school co‑authored papers</strong></div>
+        <div id="xschoolPubs">—</div>
+        <div class="muted" id="xschoolPairs"></div></div>
+      <div class="card"><div><strong>Concept/Topic Overlap</strong></div>
+        <div id="overlapPct">—</div>
+        <div class="muted">Jaccard on DF (per paper, union of terms)</div></div>
+    </div>
+  </section>
+
+  <section class="charts-grid card">
+    <div class="chart-card">
+      <div class="panel-head">
+        <h2>Publications by year</h2>
+        <div class="muted" id="pubMeta"></div>
+      </div>
+      <div id="pubByYear" class="chart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="panel-head">
+        <h2>Cross‑school co‑authorship network</h2>
+        <div class="muted">Edges only when a paper lists at least one author from A and one from B</div>
+      </div>
+      <div id="xNetwork" class="chart network-chart"></div>
+      <details id="xPairs" class="collapse">
+        <summary>Author pairs (click a row to see titles)</summary>
+        <div id="xPairDetail" class="muted"></div>
+        <table>
+          <thead><tr><th>Author A</th><th>Author B</th><th># joint pubs</th></tr></thead>
+          <tbody id="xPairsBody"></tbody>
+        </table>
+      </details>
+    </div>
+
+    <div class="chart-card">
+      <div class="panel-head">
+        <h2>Author–topic PCA (A vs B)</h2>
+        <div class="muted" id="pcaMeta"></div>
+      </div>
+      <!-- pca‑search UI will be inserted just above this div by JS -->
+      <div id="pca" class="chart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="panel-head">
+        <h2>Top terms (quick glance)</h2>
+      </div>
+      <div id="enrichment" class="enrichment"></div>
+    </div>
+  </section>
+</body>
+</html>
