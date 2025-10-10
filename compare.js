@@ -413,7 +413,7 @@
     ids.forEach(id => {
       const set = aA.get(id) || aB.get(id) || new Set();
       Array.from(set).forEach(t => { if(!termsIndex.has(t)) termsIndex.set(t, termsIndex.size); });
-      rows.push(new Set(Array.from(set).map(t => termsIndex.get(t)));
+      rows.push(new Set(Array.from(set).map(t => termsIndex.get(t))));
     });
     const D = Array(M).fill(null).map(()=>Array(M).fill(0));
     for (let i=0;i<M;i++){
