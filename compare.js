@@ -364,7 +364,7 @@ function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
       nodes(g.bIDs, B.meta.color || '#059669', g.nodeB, g.partnersB, A.meta.label || 'A')
     ];
     Plotly.newPlot('xNetwork', data, {
-      margin:{t:30,r:40,b:30,l:40},
+      margin:{t:30,r:10,b:30,l:10},
       xaxis:{visible:false},
       yaxis:{visible:false},
       hovermode:'closest',
