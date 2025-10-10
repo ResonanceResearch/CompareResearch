@@ -380,7 +380,7 @@ function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
       nodes(g.bIDs, B.meta.color || '#059669', g.nodeB, g.partnersB, A.meta.label || 'A')
     ];
     Plotly.newPlot('xNetwork', data, {
-      margin:{t:30,r:24,b:30,l:48},          // left margin only; increase l for more blank space
+      margin:{t:30,r:10,b:30,l:10},          // left margin only; increase l for more blank space
       xaxis:{visible:false, range:[-1.35, 1.15]}, // widen left domain; make first value more negative for more room
       yaxis:{visible:false},
       hovermode:'closest',
