@@ -414,7 +414,7 @@ function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
       barmode:"group",
       margin:{t:34,r:20,b:110,l:70},
       xaxis:{tickangle:-30, automargin:true},
-      yaxis:{title:"log2 fold-change (per-capita)", automargin:true}
+      yaxis:{title:"log2 fold-change", automargin:true}
     }, {responsive:true});
     ensureExportToolbar('enrichment', 'compare_enrichment');
   }
