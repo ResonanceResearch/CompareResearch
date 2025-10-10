@@ -6,7 +6,12 @@
   const clampYear = (y) => (!y ? 2021 : (y<1990?1990:(y>2100?2100:y)));
   const toInt   = (x) => { const n = Number(x); return Number.isFinite(n) ? Math.round(n) : 0; };
   const debounce = (fn, wait=120) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; };
-  const normalizeID = (id) => { const s = String(id||'').trim().replace(/^https?:\\/\\/(?:www\\.)?openalex\\.org\\/(authors\\/)?/i,'').trim(); return /^A\\d{4,}$/.test(s) ? s : ''; };
+  const normalizeID = (id) => {
+    const s = String(id||'').trim()
+      .replace(/^[Hh][Tt][Tt][Pp][Ss]?:\/\/(?:www\.)?openalex\.org\/(?:authors\/)?/, '')
+      .trim();
+    return /^A\d{4,}$/.test(s) ? s : '';
+  };
 
   function fetchJSON(url){ return fetch(url).then(r=>r.json()); }
   function fetchCSV(url){ return fetch(url).then(r=>{ if(!r.ok) throw new Error("CSV not found: "+url); return r.text(); }); }
