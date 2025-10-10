@@ -345,27 +345,43 @@ function crossSchoolPubs(pubsA, pubsB, rosterA, rosterB){
       hovertemplate: '%{text}<extra>Cross-pair</extra>',
       showlegend: false
     };
+    
     function nodes(ids, color, nameMap, partnersMap, partnerSchoolLabel){
-      const xs=[], ys=[], labels=[], customs=[];
+      const xs=[], ys=[], labels=[], customs=[], textpos=[];
       ids.forEach(id => {
-        const p=g.pos.get(id); xs.push(p.x); ys.push(p.y);
+        const p = g.pos.get(id); xs.push(p.x); ys.push(p.y);
         const nm = nameMap.get(id)?.name || id;
         labels.push(nm);
-        const partners = (partnersMap.get(id) || []).sort((a,b)=>b.count-a.count).slice(0,8)
+        // Push labels inward: nodes left of center → right-anchored; right of center → left-anchored
+        textpos.push(p.x < 0 ? 'middle right' : 'middle left');
+    
+        const partners = (partnersMap.get(id) || [])
+          .sort((a,b)=>b.count-a.count).slice(0,8)
           .map(x => `${x.name} (${x.count})`).join(', ');
         customs.push(partners ? `${partnerSchoolLabel} partners: ${partners}` : `No cross-school partners`);
       });
-      return {type:'scattergl', mode:'markers+text', x:xs, y:ys, text:labels, textposition:'top center',
-              marker:{size:10, opacity:0.95, line:{width:0}, color}, hovertemplate:'%{text}<br>%{customdata}<extra></extra>', customdata: customs};
+      return {
+        type:'scattergl',
+        mode:'markers+text',
+        x:xs, y:ys,
+        text:labels,
+        textposition:textpos,       // inward placement to avoid edge truncation
+        textfont:{size:11},         // tweak as needed
+        cliponaxis:false,           // allow labels beyond plot area
+        marker:{size:10, opacity:0.95, line:{width:0}, color},
+        hovertemplate:'%{text}<br>%{customdata}<extra></extra>',
+        customdata: customs
+      };
     }
+
     const data = [
       edgeTrace, edgeHover,
       nodes(g.aIDs, A.meta.color || '#2563eb', g.nodeA, g.partnersA, B.meta.label || 'B'),
       nodes(g.bIDs, B.meta.color || '#059669', g.nodeB, g.partnersB, A.meta.label || 'A')
     ];
     Plotly.newPlot('xNetwork', data, {
-      margin:{t:30,r:10,b:30,l:10},
-      xaxis:{visible:false},
+      margin:{t:30,r:24,b:30,l:48},          // left margin only; increase l for more blank space
+      xaxis:{visible:false, range:[-1.35, 1.15]}, // widen left domain; make first value more negative for more room
       yaxis:{visible:false},
       hovermode:'closest',
       showlegend:false
